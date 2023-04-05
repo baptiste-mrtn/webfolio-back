@@ -21,9 +21,13 @@ class Category
     #[ORM\ManyToMany(targetEntity: Site::class, mappedBy: 'category')]
     private Collection $sites;
 
+    #[ORM\ManyToMany(targetEntity: Gallery::class, mappedBy: 'categories')]
+    private Collection $galleries;
+
     public function __construct()
     {
         $this->sites = new ArrayCollection();
+        $this->galleries = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -51,22 +55,11 @@ class Category
         return $this->sites;
     }
 
-    public function addSite(Site $site): self
+    /**
+     * @return Collection<int, Gallery>
+     */
+    public function getGalleries(): Collection
     {
-        if (!$this->sites->contains($site)) {
-            $this->sites->add($site);
-            $site->addCategory($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSite(Site $site): self
-    {
-        if ($this->sites->removeElement($site)) {
-            $site->removeCategory($this);
-        }
-
-        return $this;
+        return $this->galleries;
     }
 }

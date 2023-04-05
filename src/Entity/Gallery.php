@@ -2,14 +2,14 @@
 
 namespace App\Entity;
 
-use App\Repository\SiteRepository;
+use App\Repository\GalleryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
 
-#[ORM\Entity(repositoryClass: SiteRepository::class)]
-class Site extends BaseEntity
+#[ORM\Entity(repositoryClass: GalleryRepository::class)]
+class Gallery
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -18,31 +18,25 @@ class Site extends BaseEntity
 
     #[ORM\Column(length: 255)]
     /**
-     * @Groups({"site"})
+     * @Groups({"gallery"})
      */
     private ?string $title = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     /**
-     * @Groups({"site"})
+     * @Groups({"gallery"})
      */
     private ?string $description = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 255)]
     /**
-     * @Groups({"site"})
+     * @Groups({"gallery"})
      */
     private ?string $picture = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'galleries')]
     /**
-     * @Groups({"site"})
-     */
-    private ?string $url = null;
-
-    #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'sites')]
-    /**
-     * @Groups({"site"})
+     * @Groups({"gallery"})
      */
     private Collection $categories;
 
@@ -73,7 +67,7 @@ class Site extends BaseEntity
         return $this->description;
     }
 
-    public function setDescription(string $description): self
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
 
@@ -85,21 +79,9 @@ class Site extends BaseEntity
         return $this->picture;
     }
 
-    public function setPicture(?string $picture): self
+    public function setPicture(string $picture): self
     {
         $this->picture = $picture;
-
-        return $this;
-    }
-
-    public function getUrl(): ?string
-    {
-        return $this->url;
-    }
-
-    public function setUrl(string $url): self
-    {
-        $this->url = $url;
 
         return $this;
     }
@@ -107,7 +89,7 @@ class Site extends BaseEntity
     /**
      * @return Collection<int, Category>
      */
-    public function getCategory(): Collection
+    public function getCategories(): Collection
     {
         return $this->categories;
     }
