@@ -10,7 +10,7 @@ abstract class BaseEntity
     /** 
      *  
      * @var string|null
-     * @Groups({"list","id","edit"})
+     * @Groups({"list","idcrypt","edit"})
      */
     protected $idcrypt;
 

@@ -40,10 +40,7 @@ class Site extends BaseEntity
      */
     private ?string $url = null;
 
-    #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'sites')]
-    /**
-     * @Groups({"site"})
-     */
+    #[ORM\OneToMany(targetEntity: Category::class, mappedBy:'site')]
     private Collection $categories;
 
     public function __construct()
