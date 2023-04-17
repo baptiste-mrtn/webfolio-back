@@ -40,7 +40,7 @@ class Site extends BaseEntity
      */
     private ?string $url = null;
 
-    #[ORM\OneToMany(targetEntity: Category::class, mappedBy:'site')]
+    #[ORM\OneToMany(mappedBy: 'site', targetEntity: Category::class)]
     private Collection $categories;
 
     public function __construct()
@@ -104,7 +104,7 @@ class Site extends BaseEntity
     /**
      * @return Collection<int, Category>
      */
-    public function getCategory(): Collection
+    public function getCategories(): Collection
     {
         return $this->categories;
     }
@@ -113,6 +113,7 @@ class Site extends BaseEntity
     {
         if (!$this->categories->contains($category)) {
             $this->categories->add($category);
+            $category->setSite($this);
         }
 
         return $this;
@@ -120,8 +121,14 @@ class Site extends BaseEntity
 
     public function removeCategory(Category $category): self
     {
-        $this->categories->removeElement($category);
+        if ($this->categories->removeElement($category)) {
+            // set the owning side to null (unless already changed)
+            if ($category->getSite() === $this) {
+                $category->setSite(null);
+            }
+        }
 
         return $this;
     }
+
 }

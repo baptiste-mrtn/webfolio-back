@@ -30,7 +30,7 @@ class CategoryController extends AbstractController
     public function index(CategoryRepository $repository): Response
     {
         $list = $repository->findAll();
-        return $this->json(['list' => $list], 200, [], ['groups' => ['id', 'category']]);
+        return $this->json($list, 200, [], ['groups' => ['id', 'category']]);
     }
 
     /**

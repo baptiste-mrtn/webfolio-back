@@ -42,7 +42,7 @@ class SiteController extends AbstractController
         foreach ($list as $site) {
             $site->cryptId($site->getId());
         }
-        return $this->json(['list' => $list], 200, [], ['groups' => ['idcrypt', 'site']]);
+        return $this->json(['list' => $list], 200, [], ['groups' => ['idcrypt', 'site', 'category']]);
     }
 
     /**
@@ -121,9 +121,9 @@ class SiteController extends AbstractController
             $entity->setDescription($site->getDescription());
             $entity->setPicture($site->getPicture());
             $entity->setUrl($site->getUrl());
-            foreach ($site->getCategory() as $cle => $valeur) {
-                $entity->addCategory($valeur);
-            }
+            // foreach ($site->getCategory() as $cle => $valeur) {
+            //     $entity->addCategory($valeur);
+            // }
             $em->persist($entity);
             $em->flush();
             $entity->cryptId($id);

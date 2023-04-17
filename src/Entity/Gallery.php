@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: GalleryRepository::class)]
-class Gallery
+class Gallery extends BaseEntity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -35,7 +35,7 @@ class Gallery
      */
     private ?string $picture = null;
 
-    #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'galleries')]
+    #[ORM\OneToMany(mappedBy: 'gallery', targetEntity: Category::class)]
     /**
      * @Groups({"gallery"})
      */
@@ -99,6 +99,7 @@ class Gallery
     {
         if (!$this->categories->contains($category)) {
             $this->categories->add($category);
+            $category->setGallery($this);
         }
 
         return $this;
@@ -106,7 +107,12 @@ class Gallery
 
     public function removeCategory(Category $category): self
     {
-        $this->categories->removeElement($category);
+        if ($this->categories->removeElement($category)) {
+            // set the owning side to null (unless already changed)
+            if ($category->getGallery() === $this) {
+                $category->setGallery(null);
+            }
+        }
 
         return $this;
     }

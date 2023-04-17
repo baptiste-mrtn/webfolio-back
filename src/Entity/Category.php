@@ -29,6 +29,12 @@ class Category
     #[ORM\ManyToMany(targetEntity: Gallery::class, mappedBy: 'categories')]
     private Collection $galleries;
 
+    #[ORM\ManyToOne(inversedBy: 'categories')]
+    private ?Gallery $gallery = null;
+
+    #[ORM\ManyToOne(inversedBy: 'categories')]
+    private ?Site $site = null;
+
     public function __construct()
     {
         $this->sites = new ArrayCollection();
@@ -66,5 +72,29 @@ class Category
     public function getGalleries(): Collection
     {
         return $this->galleries;
+    }
+
+    public function getGallery(): ?Gallery
+    {
+        return $this->gallery;
+    }
+
+    public function setGallery(?Gallery $gallery): self
+    {
+        $this->gallery = $gallery;
+
+        return $this;
+    }
+
+    public function getSite(): ?Site
+    {
+        return $this->site;
+    }
+
+    public function setSite(?Site $site): self
+    {
+        $this->site = $site;
+
+        return $this;
     }
 }
