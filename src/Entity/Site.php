@@ -43,6 +43,9 @@ class Site extends BaseEntity
     #[ORM\OneToMany(mappedBy: 'site', targetEntity: Category::class)]
     private Collection $categories;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $createdAt = null;
+
     public function __construct()
     {
         $this->categories = new ArrayCollection();
@@ -127,6 +130,18 @@ class Site extends BaseEntity
                 $category->setSite(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?\DateTimeImmutable $createdAt): self
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }

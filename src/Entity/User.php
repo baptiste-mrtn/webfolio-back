@@ -3,12 +3,15 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\Property;
 use Symfony\Component\Validator\Constraints as Assert;
-
+use OpenApi\Annotations as OA;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User extends BaseEntity implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -43,7 +46,22 @@ class User extends BaseEntity implements UserInterface, PasswordAuthenticatedUse
     private ?string $password = null;
 
     #[ORM\Column(type: 'json')]
+    /**
+     * @Groups({"users", "login"})
+     * @OA\Property(type="array", @OA\Items(type="string"))
+     */
     private $roles = [];
+
+    #[ORM\OneToMany(mappedBy: 'author', targetEntity: Review::class)]
+    /**
+     * @Groups({"users", "login"})
+     */
+    private Collection $comments;
+
+    public function __construct()
+    {
+        $this->comments = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -146,4 +164,35 @@ class User extends BaseEntity implements UserInterface, PasswordAuthenticatedUse
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
     }
+
+    /**
+     * @return Collection<int, Review>
+     */
+    public function getComments(): Collection
+    {
+        return $this->comments;
+    }
+
+    public function addComment(Review $comment): self
+    {
+        if (!$this->comments->contains($comment)) {
+            $this->comments->add($comment);
+            $comment->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeComment(Review $comment): self
+    {
+        if ($this->comments->removeElement($comment)) {
+            // set the owning side to null (unless already changed)
+            if ($comment->getAuthor() === $this) {
+                $comment->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

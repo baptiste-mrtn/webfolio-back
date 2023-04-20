@@ -14,29 +14,11 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Gallery[]    findAll()
  * @method Gallery[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class GalleryRepository extends ServiceEntityRepository
+class GalleryRepository extends BaseRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Gallery::class);
-    }
-
-    public function save(Gallery $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(Gallery $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
     }
 
 //    /**

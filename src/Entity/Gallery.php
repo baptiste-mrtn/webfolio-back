@@ -41,6 +41,9 @@ class Gallery extends BaseEntity
      */
     private Collection $categories;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $createdAt = null;
+
     public function __construct()
     {
         $this->categories = new ArrayCollection();
@@ -113,6 +116,18 @@ class Gallery extends BaseEntity
                 $category->setGallery(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?\DateTimeImmutable $createdAt): self
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }
