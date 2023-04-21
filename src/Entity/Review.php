@@ -7,7 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
-
+use Symfony\Component\Validator\Constraints\Max;
 #[ORM\Entity(repositoryClass: ReviewRepository::class)]
 class Review extends BaseEntity
 {
@@ -19,7 +19,7 @@ class Review extends BaseEntity
     #[ORM\Column]
     /**
      * @Groups({"review"})
-     * @Assert\Max(limit = 4, message = "La note doit être de 4 ou moins")
+     * @Assert\Length(max = 4)
      */
     private ?int $rate = null;
 
@@ -44,6 +44,12 @@ class Review extends BaseEntity
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $author = null;
+
+    #[ORM\ManyToOne(inversedBy: 'reviews')]
+    private ?Site $site = null;
+
+    #[ORM\ManyToOne(inversedBy: 'reviews')]
+    private ?Gallery $gallery = null;
 
     public function getId(): ?int
     {
@@ -106,6 +112,30 @@ class Review extends BaseEntity
     public function setAuthor(?User $author): self
     {
         $this->author = $author;
+
+        return $this;
+    }
+
+    public function getSite(): ?Site
+    {
+        return $this->site;
+    }
+
+    public function setSite(?Site $site): self
+    {
+        $this->site = $site;
+
+        return $this;
+    }
+
+    public function getGallery(): ?Gallery
+    {
+        return $this->gallery;
+    }
+
+    public function setGallery(?Gallery $gallery): self
+    {
+        $this->gallery = $gallery;
 
         return $this;
     }
