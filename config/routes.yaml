@@ -10,3 +10,6 @@ homepage:
     defaults:
         path: /api/doc
         permanent: true
+        
+api_refresh_token:
+    path: /api/token/refresh

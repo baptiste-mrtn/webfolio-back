@@ -35,22 +35,28 @@ class Gallery extends BaseEntity
      */
     private ?string $picture = null;
 
-    #[ORM\OneToMany(mappedBy: 'gallery', targetEntity: Category::class)]
-    /**
+    #[ORM\Column(nullable: true)]
+        /**
+     * @Groups({"gallery"})
+     */
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\OneToMany(mappedBy: 'gallery', targetEntity: Review::class)]
+        /**
+     * @Groups({"gallery"})
+     */
+    private Collection $reviews;
+
+    #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'galleries')]
+        /**
      * @Groups({"gallery"})
      */
     private Collection $categories;
 
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    #[ORM\OneToMany(mappedBy: 'gallery', targetEntity: Review::class)]
-    private Collection $reviews;
-
     public function __construct()
     {
-        $this->categories = new ArrayCollection();
         $this->reviews = new ArrayCollection();
+        $this->categories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -94,36 +100,6 @@ class Gallery extends BaseEntity
         return $this;
     }
 
-    /**
-     * @return Collection<int, Category>
-     */
-    public function getCategories(): Collection
-    {
-        return $this->categories;
-    }
-
-    public function addCategory(Category $category): self
-    {
-        if (!$this->categories->contains($category)) {
-            $this->categories->add($category);
-            $category->setGallery($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCategory(Category $category): self
-    {
-        if ($this->categories->removeElement($category)) {
-            // set the owning side to null (unless already changed)
-            if ($category->getGallery() === $this) {
-                $category->setGallery(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
@@ -162,6 +138,30 @@ class Gallery extends BaseEntity
                 $review->setGallery(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+
+    public function addCategory(Category $category): self
+    {
+        if (!$this->categories->contains($category)) {
+            $this->categories->add($category);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(Category $category): self
+    {
+        $this->categories->removeElement($category);
 
         return $this;
     }

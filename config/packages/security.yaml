@@ -1,5 +1,6 @@
 security:
   # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+  enable_authenticator_manager: true
   password_hashers:
     App\Entity\User: "auto"
     Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: "auto"
@@ -21,8 +22,15 @@ security:
     api:
       pattern: ^/api
       stateless: true
-      provider: app_user_provider
+      entry_point: jwt
+      json_login:
+        check_path: /api/public/login # or api_login_check as defined in config/routes.yaml
+        success_handler: lexik_jwt_authentication.handler.authentication_success
+        failure_handler: lexik_jwt_authentication.handler.authentication_failure
       jwt: ~
+      refresh_jwt:
+        # or, you may use the api_refresh_token route name
+        check_path: /api/token/refresh
       # guard:
       #     authenticators:
       #         - lexik_jwt_authentication.jwt_token_authenticator
@@ -45,16 +53,22 @@ security:
   access_control:
     # - { path: ^/admin, roles: ROLE_ADMIN }
     # - { path: ^/profile, roles: ROLE_USER }
+    - { path: ^/api/(login|token/refresh), roles: PUBLIC_ACCESS }
     - { path: ^/api/public, roles: PUBLIC_ACCESS }
     - { path: ^/api/doc, roles: PUBLIC_ACCESS }
     - { path: ^/api/sites/all, roles: PUBLIC_ACCESS }
-    - { path: ^/api/gallery/all, roles: PUBLIC_ACCESS }
-    - { path: ^/api/category/all, roles: PUBLIC_ACCESS }
     - { path: ^/api/sites/read, roles: PUBLIC_ACCESS }
+    - { path: ^/api/gallery/all, roles: PUBLIC_ACCESS }
     - { path: ^/api/gallery/read, roles: PUBLIC_ACCESS }
+    - { path: ^/api/category/all, roles: PUBLIC_ACCESS }
     - { path: ^/api/category/read, roles: PUBLIC_ACCESS }
     - { path: ^/api/users/create, roles: PUBLIC_ACCESS }
-    - { path: ^/api, roles: ROLE_USER }
+    - { path: ^/api/reviews/all, roles: PUBLIC_ACCESS }
+    - { path: ^/api/reviews/read, roles: PUBLIC_ACCESS }
+    - { path: ^/api/reviews/create, roles: ROLE_USER }
+    - { path: ^/api/reviews/update, roles: ROLE_USER }
+    - { path: ^/api/reviews/delete, roles: ROLE_USER }
+    - { path: ^/api, roles: ROLE_ADMIN }
 when@test:
   security:
     password_hashers:

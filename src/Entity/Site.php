@@ -40,19 +40,29 @@ class Site extends BaseEntity
      */
     private ?string $url = null;
 
-    #[ORM\OneToMany(mappedBy: 'site', targetEntity: Category::class)]
-    private Collection $categories;
 
     #[ORM\Column(nullable: true)]
+    /**
+     * @Groups({"site"})
+     */
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'site', targetEntity: Review::class)]
+    #[ORM\OneToMany(mappedBy: 'site', targetEntity: Review::class, cascade:["persist"])]
+        /**
+     * @Groups({"site"})
+     */
     private Collection $reviews;
+
+    #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'sites', cascade:["persist"])]
+        /**
+     * @Groups({"site"})
+     */
+    private Collection $categories;
 
     public function __construct()
     {
-        $this->categories = new ArrayCollection();
         $this->reviews = new ArrayCollection();
+        $this->categories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -108,36 +118,7 @@ class Site extends BaseEntity
         return $this;
     }
 
-    /**
-     * @return Collection<int, Category>
-     */
-    public function getCategories(): Collection
-    {
-        return $this->categories;
-    }
-
-    public function addCategory(Category $category): self
-    {
-        if (!$this->categories->contains($category)) {
-            $this->categories->add($category);
-            $category->setSite($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCategory(Category $category): self
-    {
-        if ($this->categories->removeElement($category)) {
-            // set the owning side to null (unless already changed)
-            if ($category->getSite() === $this) {
-                $category->setSite(null);
-            }
-        }
-
-        return $this;
-    }
-
+  
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
@@ -176,6 +157,30 @@ class Site extends BaseEntity
                 $review->setSite(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+
+    public function addCategory(Category $category): self
+    {
+        if (!$this->categories->contains($category)) {
+            $this->categories->add($category);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(Category $category): self
+    {
+        $this->categories->removeElement($category);
 
         return $this;
     }

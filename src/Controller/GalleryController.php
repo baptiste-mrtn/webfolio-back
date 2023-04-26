@@ -4,9 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Gallery;
 use App\Repository\CategoryRepository;
-use App\Repository\SiteRepository;
+use App\Repository\GalleryRepository;
 use App\Service\FileUploader;
 use App\Utils\CryptUtils;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,8 +17,6 @@ use OpenApi\Annotations as OA;
 use OpenApi\Annotations\Tag;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Nelmio\ApiDocBundle\Annotation\Model;
-use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\String\Slugger\SluggerInterface;
 
 /**
  * @Route("/api/gallery", name="app_gallery")
@@ -35,7 +34,7 @@ class GalleryController extends AbstractController
      * @return JsonResponse
      */
 
-    public function index(SiteRepository $repository, CategoryRepository $catRepository): Response
+    public function index(GalleryRepository $repository, CategoryRepository $catRepository): Response
     {
         $list = $repository->findAll();
         foreach ($list as $gallery) {
@@ -55,22 +54,30 @@ class GalleryController extends AbstractController
      *     response=200,
      *     description="Status ok"
      * )
-     * @ParamConverter(
-     *     "gallery",
-     *     converter="fos_rest.request_body",
-     * )
      * @param Request $request
      * @return JsonResponse
      */
 
-    public function create(Gallery $gallery, SiteRepository $repository, EntityManagerInterface $em, Request $request): Response
+    // ParamConverter("gallery",converter="fos_rest.request_body")
+
+    public function create(EntityManagerInterface $em, Request $request, CategoryRepository $categoryRepository): Response
     {
-        $entity = new Gallery();
-        $entity = $gallery;
-        $em->persist($entity);
+        $values = json_decode($request->getContent(), true);
+
+        $gallery = new Gallery();
+        $today = new DateTimeImmutable();
+        $gallery->setCreatedAt($today);
+        $gallery->setTitle($values['title'])
+            ->setDescription($values['description'])
+            ->setPicture($values['picture']);
+        foreach ($values['categories'] as $category) {
+            $category = $categoryRepository->find($category['id']);
+            $gallery->addCategory($category);
+        }
+        $em->persist($gallery);
         $em->flush();
         $gallery->cryptId($gallery->getId());
-        return $this->json(['entity' => $entity], 200, [], ['groups' => ['idcrypt', 'gallery']]);
+        return $this->json(['entity' => $gallery], 200, [], ['groups' => ['idcrypt', 'gallery', 'category']]);
     }
 
     /**
@@ -84,12 +91,12 @@ class GalleryController extends AbstractController
      * @return JsonResponse
      */
 
-    public function read($id, SiteRepository $repository): Response
+    public function read($id, GalleryRepository $repository): Response
     {
         $id = CryptUtils::decryptId($id);
         $gallery = $repository->findOneBy(["id" => $id]);
         $gallery->cryptId($id);
-        return $this->json(['entity' => $gallery], 200, [], ['groups' => ['idcrypt','gallery']]);
+        return $this->json(['entity' => $gallery], 200, [], ['groups' => ['idcrypt', 'gallery', 'category']]);
     }
 
     /**
@@ -111,22 +118,38 @@ class GalleryController extends AbstractController
      * @return JsonResponse
      */
 
-    public function update($id, Gallery $gallery, SiteRepository $repository, EntityManagerInterface $em): Response
+    public function update($id, Gallery $gallery, GalleryRepository $repository, CategoryRepository $categoryRepository, EntityManagerInterface $em, Request $request): Response
     {
         $id = CryptUtils::decryptId($id);
+        $values = json_decode($request->getContent(), true);
         $entity = $repository->findOneBy(["id" => $id]);
-        if($entity){
-            $entity->setTitle($gallery->getTitle());
-            $entity->setDescription($gallery->getDescription());
-            $entity->setPicture($gallery->getPicture());
-            // foreach ($entity->getCategory() as $cle => $valeur) {
-            //     $entity->addCategory($valeur);
-            // }
+        if ($entity) {
+            $entity->setTitle($gallery->getTitle())
+                ->setDescription($gallery->getDescription());
+            if ($gallery->getPicture() != null || $gallery->getPicture() != "") {
+                $entity->setPicture($gallery->getPicture());
+            }
+            $newCategories = $values["categories"];
+            $oldCategories = $entity->getCategories();
+            foreach ($oldCategories as $category) {
+                if (!in_array($category, $newCategories)) {
+                    $category = $categoryRepository->find($category->getId());
+                    $entity->removeCategory($category);
+                }
+            }
+
+            // Ajouter les nouvelles catégories qui ne sont pas dans les anciennes catégories
+            foreach ($newCategories as $category) {
+                if (!$oldCategories->contains($category)) {
+                    $category = $categoryRepository->find($category['id']);
+                    $entity->addCategory($category);
+                }
+            }
             $em->persist($entity);
             $em->flush();
             $entity->cryptId($id);
         } else {
-            return $this->json(['error'=> 'No entity found with given id']);
+            return $this->json(['error' => 'No entity found with given id']);
         }
         return $this->json(['entity' => $entity], 200, [], ['groups' => ['idcrypt', 'gallery', 'category']]);
     }
@@ -142,7 +165,7 @@ class GalleryController extends AbstractController
      * @return JsonResponse
      */
 
-    public function delete($id, SiteRepository $repository, EntityManagerInterface $em): Response
+    public function delete($id, GalleryRepository $repository, EntityManagerInterface $em): Response
     {
         $id = CryptUtils::decryptId($id);
         $entity = $repository->findOneBy(["id" => $id]);
@@ -153,7 +176,7 @@ class GalleryController extends AbstractController
 
     /**
      * @Route("/file" , name="file",methods={"POST"})
-     * @Tag(name="Gallery")
+     * @Tag(name="Sites")
      * @OA\Response(
      *     response=200,
      *     description="Status ok"
@@ -166,7 +189,7 @@ class GalleryController extends AbstractController
     {
         $file = $request->files->get('picture');
         if ($file) {
-            $dir = $this->getParameter('sites_directory');
+            $dir = $this->getParameter('gallery_directory');
             $res = $uploader->upload($file, $dir);
         } else {
             return $this->json(['error' => 'no image found']);

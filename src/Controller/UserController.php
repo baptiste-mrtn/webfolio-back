@@ -65,15 +65,15 @@ class UserController extends AbstractController
 
     public function create(User $user, UserRepository $repository, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): Response
     {
-        $entity = new User();
-        $entity = $user;
-        $existant = $repository->findOneBy(["email" => $entity->getEmail()]);
-        if ($existant > 0) {
-            throw new Exception('Cet email est déja utilisé.');
-        };
+        //$existant = $repository->findOneBy(["email" => $user->getEmail()]);
+        // if ($existant > 0) {
+        //     throw new Exception('Cet email est déja utilisé.');
+        // };
+       /*  $entity = new User();
+        $entity = $user; */
         $hashedPassword = $passwordHasher->hashPassword(
-            $entity,
-            $entity->getPassword()
+            $user,
+            $user->getPassword()
         );
         $user->setPassword($hashedPassword);
         $errors = $validator->validate($user);
@@ -81,7 +81,7 @@ class UserController extends AbstractController
             throw new Exception($errors[0]->getMessage());
         }
         $repository->save($user, true);
-        return $this->json(['entity' => $entity], 200, [], ['groups' => ['users', 'id']]);
+        return $this->json(['entity' => $user], 200, [], ['groups' => ['users', 'id']]);
     }
 
     /**

@@ -10,9 +10,12 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\Property;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use OpenApi\Annotations as OA;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name:'users')]
+#[UniqueEntity(fields:["email"], message:"There is already an account with this email")]
 class User extends BaseEntity implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -59,7 +62,7 @@ class User extends BaseEntity implements UserInterface, PasswordAuthenticatedUse
     private Collection $comments;
 
     public function __construct()
-    {
+    {   
         $this->comments = new ArrayCollection();
     }
 

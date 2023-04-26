@@ -15,6 +15,9 @@ class Category
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    /**
+     * @Groups({"id", "category"})
+     */
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -23,17 +26,11 @@ class Category
      */
     private ?string $name = null;
 
-    #[ORM\ManyToMany(targetEntity: Site::class, mappedBy: 'category')]
+    #[ORM\ManyToMany(targetEntity: Site::class, mappedBy: 'categories')]
     private Collection $sites;
 
     #[ORM\ManyToMany(targetEntity: Gallery::class, mappedBy: 'categories')]
     private Collection $galleries;
-
-    #[ORM\ManyToOne(inversedBy: 'categories')]
-    private ?Gallery $gallery = null;
-
-    #[ORM\ManyToOne(inversedBy: 'categories')]
-    private ?Site $site = null;
 
     public function __construct()
     {
@@ -66,6 +63,25 @@ class Category
         return $this->sites;
     }
 
+    public function addSite(Site $site): self
+    {
+        if (!$this->sites->contains($site)) {
+            $this->sites->add($site);
+            $site->addCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSite(Site $site): self
+    {
+        if ($this->sites->removeElement($site)) {
+            $site->removeCategory($this);
+        }
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Gallery>
      */
@@ -74,27 +90,23 @@ class Category
         return $this->galleries;
     }
 
-    public function getGallery(): ?Gallery
+    public function addGallery(Gallery $gallery): self
     {
-        return $this->gallery;
-    }
-
-    public function setGallery(?Gallery $gallery): self
-    {
-        $this->gallery = $gallery;
+        if (!$this->galleries->contains($gallery)) {
+            $this->galleries->add($gallery);
+            $gallery->addCategory($this);
+        }
 
         return $this;
     }
 
-    public function getSite(): ?Site
+    public function removeGallery(Gallery $gallery): self
     {
-        return $this->site;
-    }
-
-    public function setSite(?Site $site): self
-    {
-        $this->site = $site;
+        if ($this->galleries->removeElement($gallery)) {
+            $gallery->removeCategory($this);
+        }
 
         return $this;
     }
+
 }
