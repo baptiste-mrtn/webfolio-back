@@ -25,13 +25,13 @@ class User extends BaseEntity implements UserInterface, PasswordAuthenticatedUse
 
     #[ORM\Column(length: 255)]
     /**
-     * @Groups({"users"})
+     * @Groups({"users", "review"})
      */
     private ?string $lastName = null;
 
     #[ORM\Column(length: 255)]
     /**
-     * @Groups({"users"})
+     * @Groups({"users", "review"})
      */
     private ?string $firstName = null;
 

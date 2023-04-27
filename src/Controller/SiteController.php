@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Site;
 use App\Repository\CategoryRepository;
+use App\Repository\ReviewRepository;
 use App\Repository\SiteRepository;
 use App\Service\FileUploader;
 use App\Utils\CryptUtils;
@@ -40,7 +41,7 @@ class SiteController extends AbstractController
         foreach ($list as $site) {
             $site->cryptId($site->getId());
         }
-        return $this->json(['list' => $list], 200, [], ['groups' => ['idcrypt', 'site', 'category']]);
+        return $this->json(['list' => $list], 200, [], ['groups' => ['idcrypt', 'site', 'category', 'review']]);
     }
 
     /**
@@ -81,7 +82,7 @@ class SiteController extends AbstractController
         $em->persist($site);
         $em->flush();
         $site->cryptId($site->getId());
-        return $this->json(['entity' => $site], 200, [], ['groups' => ['idcrypt', 'site', 'category']]);
+        return $this->json(['entity' => $site], 200, [], ['groups' => ['idcrypt', 'site', 'category', 'review']]);
     }
 
     /**
@@ -100,7 +101,7 @@ class SiteController extends AbstractController
         $id = CryptUtils::decryptId($id);
         $site = $repository->findOneBy(["id" => $id]);
         $site->cryptId($id);
-        return $this->json(['entity' => $site], 200, [], ['groups' => ['idcrypt','site', 'category']]);
+        return $this->json(['entity' => $site], 200, [], ['groups' => ['idcrypt','site', 'category', 'review']]);
     }
 
     /**
@@ -156,7 +157,7 @@ class SiteController extends AbstractController
         } else {
             return $this->json(['error'=> 'No entity found with given id']);
         }
-        return $this->json(['entity' => $entity], 200, [], ['groups' => ['idcrypt', 'site', 'category']]);
+        return $this->json(['entity' => $entity], 200, [], ['groups' => ['idcrypt', 'site', 'category', 'review']]);
     }
 
     /**

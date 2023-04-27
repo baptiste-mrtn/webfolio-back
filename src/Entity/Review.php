@@ -43,6 +43,9 @@ class Review extends BaseEntity
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(nullable: false)]
+        /**
+     * @Groups({"review"})
+     */
     private ?User $author = null;
 
     #[ORM\ManyToOne(inversedBy: 'reviews')]

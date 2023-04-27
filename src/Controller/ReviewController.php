@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Review;
+use App\Repository\GalleryRepository;
 use App\Repository\ReviewRepository;
+use App\Repository\SiteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,6 +19,7 @@ use OpenApi\Annotations\Tag;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+
 /**
  * @Route("/api/reviews", name="app_reviews")
  */
@@ -53,22 +56,43 @@ class ReviewController extends AbstractController
      *     response=200,
      *     description="Status ok"
      * )
-     * @ParamConverter(
-     *     "review",
-     *     converter="fos_rest.request_body",
-     * )
      * @param Request $request
      * @return JsonResponse
      */
 
-    public function create(Review $review, ReviewRepository $repository, EntityManagerInterface $em, Request $request): Response
+    // ParamConverter("review",converter="fos_rest.request_body")
+
+    public function create(EntityManagerInterface $em, Request $request, SiteRepository $siteRepository, GalleryRepository $galleryRepository): Response
     {
-        $entity = new Review();
-        $entity = $review;
-        $em->persist($entity);
+        $values = json_decode($request->getContent(), true);
+        $review = new Review();
+        $user = $this->getUser();
+        $today = new DateTimeImmutable();
+
+        if (!empty($values['site'])) {
+            $site = $values['site'];
+            $idSite = CryptUtils::decryptId($site);
+            $site = $siteRepository->find($idSite);
+            $review->setSite($site);
+        }
+
+        if (!empty($values['gallery'])) {
+            $gallery = $values['gallery'];
+            $idSite = CryptUtils::decryptId($gallery);
+            $gallery = $galleryRepository->find($idSite);
+            $review->setGallery($gallery);
+        }
+
+        $review->setAuthor($user)
+        ->setCreatedAt($today)
+        ->setRate($values["rate"])
+        ->setTitle($values["title"])
+        ->setComment($values["comment"]);
+
+        $em->persist($review);
         $em->flush();
         $review->cryptId($review->getId());
-        return $this->json(['entity' => $entity], 200, [], ['groups' => ['idcrypt', 'review']]);
+        return $this->json(['entity' => $review], 200, [], ['groups' => ['idcrypt', 'review']]);
     }
 
     /**
@@ -87,7 +111,7 @@ class ReviewController extends AbstractController
         $id = CryptUtils::decryptId($id);
         $review = $repository->findOneBy(["id" => $id]);
         $review->cryptId($id);
-        return $this->json(['entity' => $review], 200, [], ['groups' => ['idcrypt','review']]);
+        return $this->json(['entity' => $review], 200, [], ['groups' => ['idcrypt', 'review']]);
     }
 
     /**
@@ -112,18 +136,16 @@ class ReviewController extends AbstractController
     public function update($id, Review $review, ReviewRepository $repository, EntityManagerInterface $em): Response
     {
         $id = CryptUtils::decryptId($id);
-        $today = new DateTimeImmutable();
         $entity = $repository->findOneBy(["id" => $id]);
-        if($entity){
+        if ($entity) {
             $entity->setTitle($review->getTitle());
             $entity->setRate($review->getRate());
-            $entity->setCreatedAt($today);
             $entity->setComment($review->getComment());
             $em->persist($entity);
             $em->flush();
             $entity->cryptId($id);
         } else {
-            return $this->json(['error'=> 'No entity found with given id']);
+            return $this->json(['error' => 'No entity found with given id']);
         }
         return $this->json(['entity' => $entity], 200, [], ['groups' => ['idcrypt', 'review']]);
     }

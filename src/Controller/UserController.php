@@ -39,7 +39,7 @@ class UserController extends AbstractController
     {
         $list = $repository->findAll();
         foreach ($list as $user) {
-            $user["id"] = CryptUtils::cryptId($user["id"]);
+            $user->cryptId($user->getId());
         }
         return $this->json(['list' => $list], 200, [], ['groups' => ['users', 'id']]);
     }
@@ -65,12 +65,6 @@ class UserController extends AbstractController
 
     public function create(User $user, UserRepository $repository, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): Response
     {
-        //$existant = $repository->findOneBy(["email" => $user->getEmail()]);
-        // if ($existant > 0) {
-        //     throw new Exception('Cet email est déja utilisé.');
-        // };
-       /*  $entity = new User();
-        $entity = $user; */
         $hashedPassword = $passwordHasher->hashPassword(
             $user,
             $user->getPassword()
@@ -103,9 +97,7 @@ class UserController extends AbstractController
     {
         $id = CryptUtils::decryptId($id);
         $user = $repository->findOneBy(["id" => $id]);
-        $user["id"] = CryptUtils::cryptId($user["id"]);
-
-        /* $count = $repository->countByQueryParam($queryParameter, $this->getUser()); */
+        $user->cryptId($user->getId());
         return $this->json(['user' => $user], 200, [], ['groups' => ['users', 'id']]);
     }
 
@@ -130,8 +122,6 @@ class UserController extends AbstractController
         $entity = $user;
         $em->persist($entity);
         $em->flush();
-
-        /* $count = $repository->countByQueryParam($queryParameter, $this->getUser()); */
         return $this->json(['entity' => $entity], 200, [], ['groups' => ['users', 'id']]);
     }
 

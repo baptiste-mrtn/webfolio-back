@@ -18,7 +18,7 @@ class Site extends BaseEntity
 
     #[ORM\Column(length: 255)]
     /**
-     * @Groups({"site"})
+     * @Groups({"site", "review"})
      */
     private ?string $title = null;
 

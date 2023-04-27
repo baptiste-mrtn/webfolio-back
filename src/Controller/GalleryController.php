@@ -40,7 +40,7 @@ class GalleryController extends AbstractController
         foreach ($list as $gallery) {
             $gallery->cryptId($gallery->getId());
         }
-        return $this->json(['list' => $list], 200, [], ['groups' => ['idcrypt', 'gallery', 'category']]);
+        return $this->json(['list' => $list], 200, [], ['groups' => ['idcrypt', 'gallery', 'category', 'review']]);
     }
 
     /**
@@ -77,7 +77,7 @@ class GalleryController extends AbstractController
         $em->persist($gallery);
         $em->flush();
         $gallery->cryptId($gallery->getId());
-        return $this->json(['entity' => $gallery], 200, [], ['groups' => ['idcrypt', 'gallery', 'category']]);
+        return $this->json(['entity' => $gallery], 200, [], ['groups' => ['idcrypt', 'gallery', 'category', 'review']]);
     }
 
     /**
@@ -96,7 +96,7 @@ class GalleryController extends AbstractController
         $id = CryptUtils::decryptId($id);
         $gallery = $repository->findOneBy(["id" => $id]);
         $gallery->cryptId($id);
-        return $this->json(['entity' => $gallery], 200, [], ['groups' => ['idcrypt', 'gallery', 'category']]);
+        return $this->json(['entity' => $gallery], 200, [], ['groups' => ['idcrypt', 'gallery', 'category', 'review']]);
     }
 
     /**
@@ -151,7 +151,7 @@ class GalleryController extends AbstractController
         } else {
             return $this->json(['error' => 'No entity found with given id']);
         }
-        return $this->json(['entity' => $entity], 200, [], ['groups' => ['idcrypt', 'gallery', 'category']]);
+        return $this->json(['entity' => $entity], 200, [], ['groups' => ['idcrypt', 'gallery', 'category', 'review']]);
     }
 
     /**
