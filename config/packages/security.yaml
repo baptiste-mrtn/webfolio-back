@@ -58,8 +58,10 @@ security:
     - { path: ^/api/doc, roles: PUBLIC_ACCESS }
     - { path: ^/api/sites/all, roles: PUBLIC_ACCESS }
     - { path: ^/api/sites/read, roles: PUBLIC_ACCESS }
+    - { path: ^/api/sites/find/, roles: PUBLIC_ACCESS }
     - { path: ^/api/gallery/all, roles: PUBLIC_ACCESS }
     - { path: ^/api/gallery/read, roles: PUBLIC_ACCESS }
+    - { path: ^/api/gallery/find/, roles: PUBLIC_ACCESS }
     - { path: ^/api/category/all, roles: PUBLIC_ACCESS }
     - { path: ^/api/category/read, roles: PUBLIC_ACCESS }
     - { path: ^/api/users/create, roles: PUBLIC_ACCESS }

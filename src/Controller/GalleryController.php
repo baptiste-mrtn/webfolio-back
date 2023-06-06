@@ -196,4 +196,30 @@ class GalleryController extends AbstractController
         }
         return $this->json(['location' =>  $res]);
     }
+
+        /**
+     * @Route("/find/{category}" , name="find",methods={"POST"})
+     * @Tag(name="Gallery")
+     * @OA\Response(
+     *     response=200,
+     *     description="Status ok"
+     * )
+     * @param Request $request
+     * @return JsonResponse
+     */
+
+     public function findByCategory($category, GalleryRepository $repository): Response
+     {
+         $list = $repository->findAll();
+         $finalList = [];
+         foreach ($list as $site) {
+             foreach ($site->getCategories() as $categoryGallery) {
+                 if ($categoryGallery->getName() === $category) {
+                     $site->cryptId($site->getId());
+                     array_push($finalList, $site);
+                 }
+             }
+         }
+         return $this->json(['list' => $finalList], 200, [], ['groups' => ['idcrypt', 'gallery', 'category', 'review']]);
+     }
 }

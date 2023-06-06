@@ -61,21 +61,21 @@ class SiteController extends AbstractController
      */
 
 
-     // ParamConverter("site",converter="fos_rest.request_body")
+    // ParamConverter("site",converter="fos_rest.request_body")
 
-    public function create( EntityManagerInterface $em, Request $request, CategoryRepository $categoryRepository): Response
+    public function create(EntityManagerInterface $em, Request $request, CategoryRepository $categoryRepository): Response
     {
-        $values = json_decode($request->getContent(),true);
+        $values = json_decode($request->getContent(), true);
 
         $site = new Site();
 
         $today = new DateTimeImmutable();
         $site->setCreatedAt($today);
         $site->setTitle($values['title'])
-        ->setDescription($values['description'])
-        ->setPicture($values['picture'])
-        ->setUrl($values['url']);
-        foreach ($values['categories'] as $category ) {
+            ->setDescription($values['description'])
+            ->setPicture($values['picture'])
+            ->setUrl($values['url']);
+        foreach ($values['categories'] as $category) {
             $category = $categoryRepository->find($category['id']);
             $site->addCategory($category);
         }
@@ -101,7 +101,7 @@ class SiteController extends AbstractController
         $id = CryptUtils::decryptId($id);
         $site = $repository->findOneBy(["id" => $id]);
         $site->cryptId($id);
-        return $this->json(['entity' => $site], 200, [], ['groups' => ['idcrypt','site', 'category', 'review']]);
+        return $this->json(['entity' => $site], 200, [], ['groups' => ['idcrypt', 'site', 'category', 'review']]);
     }
 
     /**
@@ -126,13 +126,13 @@ class SiteController extends AbstractController
     public function update($id, Site $site, SiteRepository $repository, CategoryRepository $categoryRepository, EntityManagerInterface $em, Request $request): Response
     {
         $id = CryptUtils::decryptId($id);
-        $values = json_decode($request->getContent(),true);
+        $values = json_decode($request->getContent(), true);
         $entity = $repository->findOneBy(["id" => $id]);
-        if($entity){
+        if ($entity) {
             $entity->setTitle($site->getTitle())
-            ->setDescription($site->getDescription())
-            ->setUrl($site->getUrl());
-            if($site->getPicture() != null || $site->getPicture() != ""){
+                ->setDescription($site->getDescription())
+                ->setUrl($site->getUrl());
+            if ($site->getPicture() != null || $site->getPicture() != "") {
                 $entity->setPicture($site->getPicture());
             }
             $newCategories = $values["categories"];
@@ -143,19 +143,19 @@ class SiteController extends AbstractController
                     $entity->removeCategory($category);
                 }
             }
-            
+
             // Ajouter les nouvelles catégories qui ne sont pas dans les anciennes catégories
             foreach ($newCategories as $category) {
                 if (!$oldCategories->contains($category)) {
-                        $category = $categoryRepository->find($category['id']);
-                        $entity->addCategory($category);
+                    $category = $categoryRepository->find($category['id']);
+                    $entity->addCategory($category);
                 }
             }
             $em->persist($entity);
             $em->flush();
             $entity->cryptId($id);
         } else {
-            return $this->json(['error'=> 'No entity found with given id']);
+            return $this->json(['error' => 'No entity found with given id']);
         }
         return $this->json(['entity' => $entity], 200, [], ['groups' => ['idcrypt', 'site', 'category', 'review']]);
     }
@@ -201,5 +201,31 @@ class SiteController extends AbstractController
             return $this->json(['error' => 'no image found']);
         }
         return $this->json(['location' =>  $res]);
+    }
+
+    /**
+     * @Route("/find/{category}" , name="find",methods={"POST"})
+     * @Tag(name="Sites")
+     * @OA\Response(
+     *     response=200,
+     *     description="Status ok"
+     * )
+     * @param Request $request
+     * @return JsonResponse
+     */
+
+    public function findByCategory($category, SiteRepository $repository): Response
+    {
+        $list = $repository->findAll();
+        $finalList = [];
+        foreach ($list as $site) {
+            foreach ($site->getCategories() as $categorySite) {
+                if ($categorySite->getName() === $category) {
+                    $site->cryptId($site->getId());
+                    array_push($finalList, $site);
+                }
+            }
+        }
+        return $this->json(['list' => $finalList], 200, [], ['groups' => ['idcrypt', 'site', 'category', 'review']]);
     }
 }
