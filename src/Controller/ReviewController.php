@@ -164,9 +164,37 @@ class ReviewController extends AbstractController
     public function delete($id, ReviewRepository $repository, EntityManagerInterface $em): Response
     {
         $id = CryptUtils::decryptId($id);
+        $user = $this->getUser();
         $entity = $repository->findOneBy(["id" => $id]);
-        $em->remove($entity);
-        $em->flush();
-        return $this->json(['entity ' . $id . ' deleted'], 200, []);
+        if(in_array("ROLE_ADMIN", $user->getRoles()) || $entity->getAuthor() === $user){
+            $em->remove($entity);
+            $em->flush();
+            return $this->json(['entity ' . $id . ' deleted'], 200, []);
+        }
+        return $this->json(['error', 'You are not the author or admin'], 400, []);
+    }
+
+        /**
+     * @Route("/myreviews" , name="myreviews",methods={"GET"})
+     * @Tag(name="Reviews")
+     * @OA\Response(
+     *     response=200,
+     *     description="Status ok"
+     * )
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function myReviews(ReviewRepository $repository){
+        $user = $this->getUser();
+        $list = $repository->findBy(["author" => $user]);
+        foreach ($list as $review) {
+            $review->cryptId($review->getId());
+            if($review->getSite() != null){
+                $review->cryptId($review->getSite()->getId());
+            } else {
+                $review->getGallery()->getIdCrypt();
+            }
+        }
+        return $this->json(['list' => $list], 200, [], ['groups' => ['idcrypt', 'review', 'my-review']]);
     }
 }

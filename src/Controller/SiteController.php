@@ -96,11 +96,15 @@ class SiteController extends AbstractController
      * @return JsonResponse
      */
 
-    public function read($id, SiteRepository $repository): Response
+    public function read($id, SiteRepository $repository, ReviewRepository $revRepo): Response
     {
         $id = CryptUtils::decryptId($id);
         $site = $repository->findOneBy(["id" => $id]);
         $site->cryptId($id);
+        $reviews = $revRepo->findBy(["site"=>$site]);
+        foreach ($reviews as $review) {
+            $review->cryptId($review->getId());
+        }
         return $this->json(['entity' => $site], 200, [], ['groups' => ['idcrypt', 'site', 'category', 'review']]);
     }
 

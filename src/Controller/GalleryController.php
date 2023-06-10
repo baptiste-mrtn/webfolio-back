@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Gallery;
 use App\Repository\CategoryRepository;
 use App\Repository\GalleryRepository;
+use App\Repository\ReviewRepository;
 use App\Service\FileUploader;
 use App\Utils\CryptUtils;
 use DateTimeImmutable;
@@ -91,11 +92,15 @@ class GalleryController extends AbstractController
      * @return JsonResponse
      */
 
-    public function read($id, GalleryRepository $repository): Response
+    public function read($id, GalleryRepository $repository, ReviewRepository $revRepo): Response
     {
         $id = CryptUtils::decryptId($id);
         $gallery = $repository->findOneBy(["id" => $id]);
         $gallery->cryptId($id);
+        $reviews = $revRepo->findBy(["gallery"=>$gallery]);
+        foreach ($reviews as $review) {
+            $review->cryptId($review->getId());
+        }
         return $this->json(['entity' => $gallery], 200, [], ['groups' => ['idcrypt', 'gallery', 'category', 'review']]);
     }
 
